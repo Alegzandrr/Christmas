@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Christmas Card - Scrollable Album</title>
+
+  <style>
+    /* ------------------ RESET & BASICS ------------------ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      color: #333;
+      line-height: 1.5;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+      background: linear-gradient(to bottom, #fdfdfd, #f7f7f7 50%, #f0f0f0);
+    }
+
+    /* -------------- FALLING SNOW (BACKGROUND) -------------- */
+    body::before {
+      /* This uses an inline SVG/emoji as a background. 
+         You can swap this out for a small PNG or your own pattern. */
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 200%;
+      pointer-events: none;
+      background: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ctext%20x%3D%220%22%20y%3D%2220%22%20font-size%3D%2220%22%3E%F0%9F%8E%84%3C%2Ftext%3E%3C%2Fsvg%3E') repeat;
+      opacity: 0.1; 
+      animation: snow-fall 30s linear infinite;
+      z-index: -1;
+    }
+
+    @keyframes snow-fall {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(1000px); }
+    }
+
+    /* -------------- HEADER -------------- */
+    header {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: #b50706; /* Dark red for Christmas vibe */
+      color: #fff;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .intro-text {
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .header-decor-left, .header-decor-right {
+      font-size: 2rem;
+      position: absolute;
+      top: 1rem;
+    }
+    .header-decor-left {
+      left: 1rem;
+    }
+    .header-decor-right {
+      right: 1rem;
+    }
+
+    /* -------------- MAIN CONTENT -------------- */
+    main {
+      max-width: 700px;
+      margin: 2rem auto 4rem;
+      padding: 0 1rem;
+    }
+
+    .season-section {
+      margin-bottom: 3rem;
+    }
+
+    .season-title {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #b50706;
+    }
+
+    /* -------------- MONTH BUBBLE -------------- */
+    .month-bubble {
+      background: #ffffff;
+      border-radius: 15px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .month-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #b50706;
+      text-align: center;
+    }
+
+    /* -------------- PHOTO ENTRIES -------------- */
+    .photo-entry {
+      margin-bottom: 1.5rem;
+      opacity: 0;                  /* Start hidden for scroll fade-in */
+      transform: translateY(30px);
+      transition: all 0.8s ease-out;
+    }
+    .photo-entry.show {            /* Reveal on scroll */
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .photo-entry img {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 0 auto;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .comment {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      color: #555;
+      background-color: #fafafa;
+      border-radius: 8px;
+      padding: 0.5rem;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+
+    /* -------------- SURPRISE SECTION -------------- */
+    #surprise-section {
+      display: none;
+      margin-bottom: 3rem;
+    }
+
+    #surprise-section h3 {
+      margin-bottom: 1rem;
+      font-size: 1.4rem;
+      text-align: center;
+      color: #b50706;
+    }
+
+    .surprise-photos img {
+      width: 100%;
+      max-width: 400px;
+      display: block;
+      margin: 0.5rem auto;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* -------------- REVEAL BUTTON -------------- */
+    .reveal-button {
+      display: block;
+      margin: 2rem auto;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background: #28a745;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .reveal-button:hover {
+      background: #218838;
+    }
+
+    /* -------------- FOOTER -------------- */
+    footer {
+      text-align: center;
+      background: #b50706; /* Dark red for Christmas vibe */
+      color: white;
+      padding: 1rem;
+    }
+    footer p {
+      font-size: 0.9rem;
+    }
+
+    /* -------------- RESPONSIVE TWEAKS -------------- */
+    @media screen and (min-width: 768px) {
+      header h1 {
+        font-size: 2.5rem;
+      }
+      .reveal-button {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-decor-left">❄️</div>
+    <h1>Merry Christmas, My Love!</h1>
+    <div class="header-decor-right">⛄</div>
+    <p class="intro-text">
+      Here’s a festive scroll-through of our year, with more photos and 
+      comments each month. Keep scrolling for a special surprise at the end!
+    </p>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- WINTER: Jan - Mar -->
+    <section class="season-section">
+      <h2 class="season-title">Winter (January - March)</h2>
+
+      <!-- January -->
+      <div class="month-bubble">
+        <h3 class="month-title">January</h3>
+        
+        <!-- January Memory 1 (using your Imgur link) -->
+        <div class="photo-entry">
+          <img src="https://i.imgur.com/DnPI9XV.jpeg" alt="January memory 1">
+          <p class="comment">Starting the new year together—our smiles say it all!</p>
+        </div>
+
+        <!-- (Optional) January Memory 2 -->
+        <div class="photo-entry">
+          <img src="your_january_image2.jpg" alt="January memory 2">
+          <p class="comment">Cozy winter moments I’ll never forget.</p>
+        </div>
+      </div>
+
+      <!-- February -->
+      <div class="month-bubble">
+        <h3 class="month-title">February</h3>
+        
+        <div class="photo-entry">
+          <img src="your_february_image1.jpg" alt="February memory 1">
+          <p class="comment">Valentine’s Day was extra special with you.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_february_image2.jpg" alt="February memory 2">
+          <p class="comment">Even the cold can’t chill our love!</p>
+        </div>
+      </div>
+
+      <!-- March -->
+      <div class="month-bubble">
+        <h3 class="month-title">March</h3>
+        
+        <div class="photo-entry">
+          <img src="your_march_image1.jpg" alt="March memory 1">
+          <p class="comment">The snow is melting, but our fun never does.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_march_image2.jpg" alt="March memory 2">
+          <p class="comment">Hello spring vibes!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPRING: Apr - Jun -->
+    <section class="season-section">
+      <h2 class="season-title">Spring (April - June)</h2>
+
+      <!-- April -->
+      <div class="month-bubble">
+        <h3 class="month-title">April</h3>
+        
+        <div class="photo-entry">
+          <img src="your_april_image1.jpg" alt="April memory 1">
+          <p class="comment">Blooming flowers and blossoming love.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_april_image2.jpg" alt="April memory 2">
+          <p class="comment">Every day feels fresh and new with you.</p>
+        </div>
+      </div>
+
+      <!-- May -->
+      <div class="month-bubble">
+        <h3 class="month-title">May</h3>
+        
+        <div class="photo-entry">
+          <img src="your_may_image1.jpg" alt="May memory 1">
+          <p class="comment">Sunshine and weekend getaways—my favorite combo.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_may_image2.jpg" alt="May memory 2">
+          <p class="comment">Picnics, parks, and perfect days together.</p>
+        </div>
+      </div>
+
+      <!-- June -->
+      <div class="month-bubble">
+        <h3 class="month-title">June</h3>
+
+        <div class="photo-entry">
+          <img src="your_june_image1.jpg" alt="June memory 1">
+          <p class="comment">Longer days mean more time for us.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_june_image2.jpg" alt="June memory 2">
+          <p class="comment">Warm breeze, bright smiles.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMER: Jul - Sep -->
+    <section class="season-section">
+      <h2 class="season-title">Summer (July - September)</h2>
+
+      <!-- July -->
+      <div class="month-bubble">
+        <h3 class="month-title">July</h3>
+        
+        <div class="photo-entry">
+          <img src="your_july_image1.jpg" alt="July memory 1">
+          <p class="comment">Beach days and ice creams—unforgettable!</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_july_image2.jpg" alt="July memory 2">
+          <p class="comment">Fireworks and laughter every day.</p>
+        </div>
+      </div>
+
+      <!-- August -->
+      <div class="month-bubble">
+        <h3 class="month-title">August</h3>
+
+        <div class="photo-entry">
+          <img src="your_august_image1.jpg" alt="August memory 1">
+          <p class="comment">I loved every summer sunset with you.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_august_image2.jpg" alt="August memory 2">
+          <p class="comment">Late-night talks and starry skies.</p>
+        </div>
+      </div>
+
+      <!-- September -->
+      <div class="month-bubble">
+        <h3 class="month-title">September</h3>
+
+        <div class="photo-entry">
+          <img src="your_september_image1.jpg" alt="September memory 1">
+          <p class="comment">We’re easing into fall, but our fun hasn’t stopped.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_september_image2.jpg" alt="September memory 2">
+          <p class="comment">Back-to-school vibes—yet still making time for us.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FALL: Oct - Dec -->
+    <section class="season-section">
+      <h2 class="season-title">Fall (October - December)</h2>
+
+      <!-- October -->
+      <div class="month-bubble">
+        <h3 class="month-title">October</h3>
+
+        <div class="photo-entry">
+          <img src="your_october_image1.jpg" alt="October memory 1">
+          <p class="comment">Pumpkin spice, falling leaves, and you.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_october_image2.jpg" alt="October memory 2">
+          <p class="comment">Haunted houses aren’t scary with you by my side.</p>
+        </div>
+      </div>
+
+      <!-- November -->
+      <div class="month-bubble">
+        <h3 class="month-title">November</h3>
+
+        <div class="photo-entry">
+          <img src="your_november_image1.jpg" alt="November memory 1">
+          <p class="comment">Thankful every day for you.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_november_image2.jpg" alt="November memory 2">
+          <p class="comment">Cozy sweaters and warm hugs.</p>
+        </div>
+      </div>
+
+      <!-- December -->
+      <div class="month-bubble">
+        <h3 class="month-title">December</h3>
+
+        <div class="photo-entry">
+          <img src="your_december_image1.jpg" alt="December memory 1">
+          <p class="comment">Twinkling lights and hot cocoa nights.</p>
+        </div>
+
+        <div class="photo-entry">
+          <img src="your_december_image2.jpg" alt="December memory 2">
+          <p class="comment">Celebrating the holidays with you is magical.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Surprise Section (initially hidden) -->
+    <div id="surprise-section">
+      <h3>Your Christmas Surprise! 🎁</h3>
+      <p class="comment">I can’t wait to give you this gift in person!</p>
+      <div class="surprise-photos">
+        <img src="your_christmas_gift1.jpg" alt="Gift Photo 1">
+        <img src="your_christmas_gift2.jpg" alt="Gift Photo 2">
+      </div>
+    </div>
+
+    <!-- Reveal Button -->
+    <button class="reveal-button" onclick="revealSurprise()">
+      Reveal Christmas Surprise
+    </button>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Made with all my love, just for you. Merry Christmas! 🎄</p>
+  </footer>
+
+  <script>
+    /* -------------- REVEAL BUTTON LOGIC -------------- */
+    function revealSurprise() {
+      const surpriseSection = document.getElementById('surprise-section');
+      if (!surpriseSection.style.display || surpriseSection.style.display === 'none') {
+        surpriseSection.style.display = 'block';
+      } else {
+        surpriseSection.style.display = 'none';
+      }
+    }
+
+    /* -------------- SCROLL REVEAL (Intersection Observer) -------------- */
+    const photoEntries = document.querySelectorAll('.photo-entry');
+
+    const observerOptions = {
+      root: null,       // browser viewport
+      rootMargin: '0px',
+      threshold: 0.1    // trigger when 10% of an element is in view
+    };
+
+    function onIntersection(entries, observer) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('show');
+          observer.unobserve(entry.target); // stop watching once it's shown
+        }
+      });
+    }
+
+    const observer = new IntersectionObserver(onIntersection, observerOptions);
+    photoEntries.forEach(entry => observer.observe(entry));
+  </script>
+</body>
+</html>
